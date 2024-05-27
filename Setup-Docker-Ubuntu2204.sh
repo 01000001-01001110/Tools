@@ -75,17 +75,21 @@ EOF
 log "Installing unattended-upgrades..."
 sudo DEBIAN_FRONTEND=noninteractive apt-get install -y unattended-upgrades >> $LOG_FILE 2>&1
 
-# Configure unattended-upgrades
+# Manually configure unattended-upgrades
 log "Configuring unattended-upgrades..."
-sudo dpkg-reconfigure -plow unattended-upgrades >> $LOG_FILE 2>&1
-
-# Update the configuration to not restart automatically
 sudo bash -c 'cat > /etc/apt/apt.conf.d/50unattended-upgrades <<EOF
 Unattended-Upgrade::Origins-Pattern {
         "origin=Debian,codename=$(lsb_release -c -s),label=Debian-Security";
         "origin=Ubuntu,codename=$(lsb_release -c -s),label=Ubuntu";
 };
 Unattended-Upgrade::Automatic-Reboot "false";
+EOF' >> $LOG_FILE 2>&1
+
+# Enable unattended-upgrades
+log "Enabling unattended-upgrades..."
+sudo bash -c 'cat > /etc/apt/apt.conf.d/20auto-upgrades <<EOF
+APT::Periodic::Update-Package-Lists "1";
+APT::Periodic::Unattended-Upgrade "1";
 EOF' >> $LOG_FILE 2>&1
 
 # Print a message indicating the setup is complete
