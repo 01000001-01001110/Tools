@@ -67,9 +67,9 @@ sudo usermod -aG docker $USER >> $LOG_FILE 2>&1
 
 # Refresh the group membership without logging out and back in
 log "Refreshing group membership..."
-newgrp docker <<END
-log "Docker setup complete!"
-END
+newgrp docker <<EOF
+echo "Docker setup complete!" | tee -a $LOG_FILE
+EOF
 
 # Install unattended-upgrades
 log "Installing unattended-upgrades..."
@@ -82,8 +82,8 @@ sudo dpkg-reconfigure -plow unattended-upgrades >> $LOG_FILE 2>&1
 # Update the configuration to not restart automatically
 sudo bash -c 'cat > /etc/apt/apt.conf.d/50unattended-upgrades <<EOF
 Unattended-Upgrade::Origins-Pattern {
-        "origin=Debian,codename=\$(lsb_release -c -s),label=Debian-Security";
-        "origin=Ubuntu,codename=\$(lsb_release -c -s),label=Ubuntu";
+        "origin=Debian,codename=$(lsb_release -c -s),label=Debian-Security";
+        "origin=Ubuntu,codename=$(lsb_release -c -s),label=Ubuntu";
 };
 Unattended-Upgrade::Automatic-Reboot "false";
 EOF' >> $LOG_FILE 2>&1
