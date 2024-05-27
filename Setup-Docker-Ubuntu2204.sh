@@ -12,7 +12,7 @@ log() {
     echo "$(date '+%Y-%m-%d %H:%M:%S') - $1" | tee -a $LOG_FILE
 }
 
-log "Starting Docker and Docker Compose setup with unattended upgrades."
+log "Starting Docker and Docker Compose setup."
 
 # Update and upgrade the system
 log "Updating and upgrading the system..."
@@ -71,29 +71,17 @@ newgrp docker <<EOF
 echo "Docker setup complete!" | tee -a $LOG_FILE
 EOF
 
-# Install unattended-upgrades
-log "Installing unattended-upgrades..."
-sudo DEBIAN_FRONTEND=noninteractive apt-get install -y unattended-upgrades >> $LOG_FILE 2>&1
-
-# Manually configure unattended-upgrades
-log "Configuring unattended-upgrades..."
-sudo bash -c 'cat > /etc/apt/apt.conf.d/50unattended-upgrades <<EOF
-Unattended-Upgrade::Origins-Pattern {
-        "origin=Debian,codename=$(lsb_release -c -s),label=Debian-Security";
-        "origin=Ubuntu,codename=$(lsb_release -c -s),label=Ubuntu";
-};
-Unattended-Upgrade::Automatic-Reboot "false";
-EOF' >> $LOG_FILE 2>&1
-
-# Enable unattended-upgrades
-log "Enabling unattended-upgrades..."
+# Ensure no automatic reboots
+log "Configuring the system to not automatically reboot..."
 sudo bash -c 'cat > /etc/apt/apt.conf.d/20auto-upgrades <<EOF
-APT::Periodic::Update-Package-Lists "1";
-APT::Periodic::Unattended-Upgrade "1";
+APT::Periodic::Update-Package-Lists "0";
+APT::Periodic::Download-Upgradeable-Packages "0";
+APT::Periodic::AutocleanInterval "0";
+APT::Periodic::Unattended-Upgrade "0";
 EOF' >> $LOG_FILE 2>&1
 
 # Print a message indicating the setup is complete
 log "Setup complete! No need for user input during the process."
 
 # Print final message
-log "Automatic updates configured, server will not restart automatically. Please restart manually when convenient."
+log "System configured to not automatically reboot. Please restart manually when convenient."
